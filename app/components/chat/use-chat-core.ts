@@ -87,7 +87,6 @@ export function useChatCore({
   // Initialize useChat
   const {
     messages,
-    input,
     handleSubmit,
     status,
     error,
@@ -122,7 +121,7 @@ export function useChatCore({
   prevChatIdRef.current = chatId
 
   // Submit action
-  const submit = useCallback(async () => {
+  const submit = useCallback(async (value: string) => {
     setIsSubmitting(true)
 
     const uid = await getOrCreateGuestUserId(user)
@@ -137,7 +136,7 @@ export function useChatCore({
 
     const optimisticMessage = {
       id: optimisticId,
-      content: input,
+      content: value,
       role: "user" as const,
       createdAt: new Date(),
       experimental_attachments:
@@ -158,14 +157,14 @@ export function useChatCore({
         return
       }
 
-      const currentChatId = await ensureChatExists(uid, input)
+      const currentChatId = await ensureChatExists(uid, value)
       if (!currentChatId) {
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
         cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
         return
       }
 
-      if (input.length > MESSAGE_MAX_LENGTH) {
+      if (value.length > MESSAGE_MAX_LENGTH) {
         toast({
           title: `The message you submitted was too long, please submit something shorter. (Max ${MESSAGE_MAX_LENGTH} characters)`,
           status: "error",
@@ -219,7 +218,6 @@ export function useChatCore({
     user,
     files,
     createOptimisticAttachments,
-    input,
     setMessages,
     setInput,
     setFiles,
@@ -344,7 +342,6 @@ export function useChatCore({
   return {
     // Chat state
     messages,
-    input,
     handleSubmit,
     status,
     error,

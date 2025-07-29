@@ -10,16 +10,15 @@ import {
 import { Button } from "@/components/ui/button"
 import { getModelInfo } from "@/lib/models"
 import { ArrowUpIcon, StopIcon } from "@phosphor-icons/react"
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { PromptSystem } from "../suggestions/prompt-system"
 import { ButtonFileUpload } from "./button-file-upload"
 import { ButtonSearch } from "./button-search"
 import { FileList } from "./file-list"
 
 type ChatInputProps = {
-  value: string
-  onValueChange: (value: string) => void
-  onSend: () => void
+  onInputChange: (value: string) => void
+  onSend: (value: string) => void
   isSubmitting?: boolean
   hasMessages?: boolean
   files: File[]
@@ -37,8 +36,7 @@ type ChatInputProps = {
 }
 
 export function ChatInput({
-  value,
-  onValueChange,
+  onInputChange,
   onSend,
   isSubmitting,
   files,
@@ -54,9 +52,15 @@ export function ChatInput({
   setEnableSearch,
   enableSearch,
 }: ChatInputProps) {
+  const [value, setValue] = useState("")
   const selectModelConfig = getModelInfo(selectedModel)
   const hasSearchSupport = Boolean(selectModelConfig?.webSearch)
   const isOnlyWhitespace = (text: string) => !/[^\s]/.test(text)
+
+  const handleValueChange = useCallback((value: string) => {
+    setValue(value)
+    onInputChange(value)
+  }, [onInputChange])
 
   const handleSend = useCallback(() => {
     if (isSubmitting) {
@@ -68,8 +72,9 @@ export function ChatInput({
       return
     }
 
-    onSend()
-  }, [isSubmitting, onSend, status, stop])
+    onSend(value)
+    handleValueChange("")
+  }, [isSubmitting, onSend, status, stop, value, handleValueChange])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -89,10 +94,11 @@ export function ChatInput({
         }
 
         e.preventDefault()
-        onSend()
+        onSend(value)
+        handleValueChange("")
       }
     },
-    [isSubmitting, onSend, status, value]
+    [isSubmitting, onSend, status, value, handleValueChange]
   )
 
   const handlePaste = useCallback(
@@ -145,7 +151,7 @@ export function ChatInput({
     <div className="relative flex w-full flex-col gap-4">
       {hasSuggestions && (
         <PromptSystem
-          onValueChange={onValueChange}
+          onValueChange={handleValueChange}
           onSuggestion={onSuggestion}
           value={value}
         />
@@ -155,7 +161,7 @@ export function ChatInput({
           className="bg-popover relative z-10 p-0 pt-1 shadow-xs backdrop-blur-xl"
           maxHeight={200}
           value={value}
-          onValueChange={onValueChange}
+          onValueChange={handleValueChange}
         >
           <FileList files={files} onFileRemove={onFileRemove} />
           <PromptInputTextarea

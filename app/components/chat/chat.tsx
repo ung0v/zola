@@ -93,7 +93,6 @@ export function Chat() {
   // Core chat functionality (initialization + state + actions)
   const {
     messages,
-    input,
     status,
     stop,
     hasSentFirstMessageRef,
@@ -137,9 +136,8 @@ export function Chat() {
   // Memoize the chat input props
   const chatInputProps = useMemo(
     () => ({
-      value: input,
+      onInputChange: handleInputChange,
       onSuggestion: handleSuggestion,
-      onValueChange: handleInputChange,
       onSend: submit,
       isSubmitting,
       files,
@@ -156,9 +154,8 @@ export function Chat() {
       enableSearch,
     }),
     [
-      input,
-      handleSuggestion,
       handleInputChange,
+      handleSuggestion,
       submit,
       isSubmitting,
       files,
